@@ -8,7 +8,8 @@ from extractor import *
 
 slide = openslide.open_slide("./../data/image.svs")
 
-os.remove("./../data/mask.svs")
+if os.path.isfile("./../data/mask.svs"):
+	os.remove("./../data/mask.svs")
 collagen = memmap("./../data/mask.svs",
             shape=slide.dimensions,
             dtype='uint8',
