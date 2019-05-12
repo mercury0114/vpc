@@ -76,6 +76,8 @@ def averageEdgeLength(s):
 			if (nPixels > 10):
 				nEdges += 1
 				pixelCount += nPixels
+	if (nEdges == 0):
+		return 0.0
 	return pixelCount / nEdges
 
 def getCurvature(s, pixel):

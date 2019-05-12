@@ -1,11 +1,14 @@
 import openslide
 import os
 import numpy
+import mahotas
 from numpy import memmap
 from scipy.misc import imsave
+from skeletonizer import *
 from extractor import *
 from PIL import Image, ImageDraw
-
+from tifffile import memmap
+from skimage.morphology import skeletonize
 
 def drawhex(w=260,fill=1,inv=0):
     h = int(np.sqrt(3)*.5*260 / 2) * 2
@@ -19,21 +22,30 @@ def drawhex(w=260,fill=1,inv=0):
     return(img.astype(np.uint8))
 emptyHex = drawhex()
 
-
 # TODO(mariusl): get actual collagen and centers slides
-mask = openslide.open_slide("./../data/mask.svs")
+mask = memmap("./../data/mask.svs",
+			dtype='uint8')
 centers = [[1000, 1000], [2000, 2000]]
 
 with open("./../data/features.txt", "w+") as f:
-	for c in centers:
-		center = [int(e) for e in c]
-		patch = slide.read_region(location = (center[0] - 130, center[1] - 112), size = (260, 244), level = 0)
-		patch = numpy.array(patch)
-		patch[patch == 255] = 1
-		collagen = emptyHex & patch
-		skeleton = skeletonize(collagen)
-		statistics = [averageWidth(skeleton, collagen), averageCurvature(skeleton)]
-		f.write(','.join(str(e) for e in statistics))
-		f.write('\n')
-		f.flush()
+	f.write("width,length,curvature,area,connectivity,h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,h13\n")
+	for center in centers:
+		c = [int(e) for e in center]
+		if (c[0] >= 112 and c[0] + 112 <= mask.shape[0] and c[1] >= 130 and c[1] + 130 <= mask.shape[1]):
+			patch = mask[c[0] - 112 : c[0] + 112, c[1] - 130 : c[1] + 130]
+			patch = numpy.array(patch)
+			collagen = emptyHex & patch
+			skeleton = skeletonize(collagen)
+
+			statistics = []
+			statistics.append(averageWidth(skeleton, collagen))
+			statistics.append(averageEdgeLength(skeleton))
+			statistics.append(averageCurvature(skeleton))
+			statistics.append(collagenAreaRatio(collagen))
+			statistics.append(collagenConnectivityRatio(collagen))
+			statistics.extend(mahotas.features.haralick(collagen).mean(0))
+
+			f.write(','.join(str(e) for e in statistics))
+			f.write('\n')
+			f.flush()
 f.close()

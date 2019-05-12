@@ -4,7 +4,13 @@ import collections
 import cv2
 from skimage.io import imread
 from scipy.ndimage import label
+from scipy.misc import imsave
 from PIL import Image, ImageDraw
+
+def saveToFile(collagen, filename):
+	copy = collagen
+	copy[copy == 1] = 255
+	imsave(filename, copy)
 
 def sliding_window(image, stepSize, windowSize):
     for y in xrange(0, image.shape[0], stepSize):
@@ -15,7 +21,7 @@ def extractCollagen(patch, model):
 	w = model.predict(patch.reshape(1, 256, 256, 3))
 	threshold = 0.5
 	w[w <= threshold] = 0
-	w[w > threshold] = 25
+	w[w > threshold] = 1
 	w = w.astype(np.uint8)
 	return w.reshape(256, 256)
 
@@ -47,7 +53,7 @@ def extractCollagenWholeImage(imageFile, model):
 def collagenAreaRatio(collagen):
 	count = 0
 	for x, y in np.ndindex(collagen.shape):
-		if (collagen[x,y] == 255):
+		if (collagen[x,y] == 1):
 			count += 1
 	return count / (collagen.shape[0] * collagen.shape[1])
 
@@ -58,4 +64,6 @@ def collagenConnectivityRatio(collagen):
 		count = np.count_nonzero(labelled == i)
 		sum += (count * count)
 	totalArea = np.count_nonzero(collagen);
+	if (totalArea == 0):
+		return 0.0
 	return sum / (totalArea * totalArea)
