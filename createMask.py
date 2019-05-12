@@ -23,11 +23,7 @@ for x in range(0, slide.dimensions[0] - (s-1), s/2):
 	for y in range(0, slide.dimensions[1] - (s-1), s/2):
 		patch = slide.read_region(location = (x, y), size = (s, s), level = 0)
 		patch = numpy.array(patch)[:,:,:3]
-		w = model.predict(patch.reshape(1, s, s, 3))
-		w[w <= 0.5] = 0
-		w[w > 0.5] = 255
-		w = w.astype(np.uint8)
 		current = numpy.array(collagen[x:x+s, y:y+s])
-		collagen[x:x + s, y:y + s] = current | w.reshape(s, s)
+		collagen[x:x+s, y:y+s] = current | extractCollagen(patch, model)
 del collagen
 		

@@ -21,13 +21,13 @@ emptyHex = drawhex()
 
 
 # TODO(mariusl): get actual collagen and centers slides
-slide = openslide.open_slide("image.svs")
+mask = openslide.open_slide("./../data/mask.svs")
 centers = [[1000, 1000], [2000, 2000]]
 
-with open("features.txt", "w+") as f:
+with open("./../data/features.txt", "w+") as f:
 	for c in centers:
-		print(c)
-		patch = slide.read_region(location = (c[0] - 130, c[1] - 112), size = (260, 244), level = 0)
+		center = [int(e) for e in c]
+		patch = slide.read_region(location = (center[0] - 130, center[1] - 112), size = (260, 244), level = 0)
 		patch = numpy.array(patch)
 		patch[patch == 255] = 1
 		collagen = emptyHex & patch

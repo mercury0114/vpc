@@ -11,7 +11,15 @@ def sliding_window(image, stepSize, windowSize):
         for x in xrange(0, image.shape[1], stepSize):
             yield (x, y, image[y:y + windowSize[1], x:x + windowSize[0]])
 
-def extractCollagen(imageFile, model):
+def extractCollagen(patch, model):
+	w = model.predict(patch.reshape(1, 256, 256, 3))
+	threshold = 0.5
+	w[w <= threshold] = 0
+	w[w > threshold] = 25
+	w = w.astype(np.uint8)
+	return w.reshape(256, 256)
+
+def extractCollagenWholeImage(imageFile, model):
 	imh,imw = 256,256
 	sSize = 128
 	wSize = 256
