@@ -9,6 +9,7 @@ from extractor import *
 from PIL import Image, ImageDraw
 from tifffile import memmap
 from skimage.morphology import skeletonize
+from data import *
 
 def drawhex(w=260,fill=1,inv=0):
     h = int(np.sqrt(3)*.5*260 / 2) * 2
@@ -25,9 +26,11 @@ emptyHex = drawhex()
 # TODO(mariusl): get actual collagen and centers slides
 mask = memmap("./../data/mask.svs",
 			dtype='uint8')
-centers = [[1000, 1000], [2000, 2000]]
 
-with open("./../data/features.txt", "w+") as f:
+
+centers = getGrid(8207)
+
+with open("./../data/features_8207.txt", "w+") as f:
 	f.write("width,length,curvature,area,connectivity,h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,h13\n")
 	for center in centers:
 		c = [int(e) for e in center]

@@ -5,8 +5,10 @@ from tifffile import memmap
 from keras.models import load_model
 from scipy.misc import imsave
 from extractor import *
+from data import *
 
-slide = openslide.open_slide("./../data/image.svs")
+
+slide = getOpenSlide(8207)
 
 if os.path.isfile("./../data/mask.svs"):
 	os.remove("./../data/mask.svs")
@@ -26,4 +28,5 @@ for x in range(0, slide.dimensions[0] - (s-1), s/2):
 		current = numpy.array(collagen[x:x+s, y:y+s])
 		collagen[x:x+s, y:y+s] = current | extractCollagen(patch, model)
 del collagen
+print("Done with mask")
 		
