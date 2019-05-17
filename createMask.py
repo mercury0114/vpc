@@ -6,9 +6,11 @@ from keras.models import load_model
 from scipy.misc import imsave
 from extractor import *
 from data import *
+import sys
 
-
+print("Getting openslide")
 slide = getOpenSlide(8207)
+print("Slide got")
 
 if os.path.isfile("./../data/mask.svs"):
 	os.remove("./../data/mask.svs")
@@ -19,6 +21,11 @@ collagen = memmap("./../data/mask.svs",
 
 s = 256
 model = load_model("./../data/model.h5")
+
+print("Model loaded")
+print(model.summary())
+
+sys.stdout.flush()
 
 print("Computing collagen mask")
 for x in range(0, slide.dimensions[0] - (s-1), s/2):

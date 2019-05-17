@@ -30,6 +30,8 @@ mask = memmap("./../data/mask.svs",
 
 centers = getGrid(8207)
 
+
+print("Calculating statitics")
 with open("./../data/features_8207.txt", "w+") as f:
 	f.write("width,length,curvature,area,connectivity,h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,h13\n")
 	for center in centers:
@@ -52,3 +54,5 @@ with open("./../data/features_8207.txt", "w+") as f:
 			f.write('\n')
 			f.flush()
 f.close()
+
+print("Statistics calculated")
