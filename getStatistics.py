@@ -43,12 +43,12 @@ with open("./../data/features_8207.txt", "w+") as f:
 			skeleton = skeletonize(collagen)
 
 			statistics = []
-			statistics.append(averageWidth(skeleton, collagen))
-			statistics.append(averageEdgeLength(skeleton))
-			statistics.append(averageCurvature(skeleton))
-			statistics.append(collagenAreaRatio(collagen))
-			statistics.append(collagenConnectivityRatio(collagen))
-			statistics.extend(mahotas.features.haralick(collagen).mean(0))
+			statistics.append(round(averageWidth(skeleton, collagen),3))
+			statistics.append(round(averageEdgeLength(skeleton),3))
+			statistics.append(round(averageCurvature(skeleton),3))
+			statistics.append(round(collagenAreaRatio(collagen),3))
+			statistics.append(round(collagenConnectivityRatio(collagen),3))
+			statistics.extend([round(e,3) for e in mahotas.features.haralick(collagen).mean(0)])
 
 			f.write(','.join(str(e) for e in statistics))
 			f.write('\n')
