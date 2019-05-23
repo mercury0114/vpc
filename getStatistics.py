@@ -10,6 +10,7 @@ from PIL import Image, ImageDraw
 from tifffile import memmap
 from skimage.morphology import skeletonize
 from data import *
+import time
 
 def drawhex(w=260,fill=1,inv=0):
     h = int(np.sqrt(3)*.5*260 / 2) * 2
@@ -23,36 +24,44 @@ def drawhex(w=260,fill=1,inv=0):
     return(img.astype(np.uint8))
 emptyHex = drawhex()
 
-# TODO(mariusl): get actual collagen and centers slides
-mask = memmap("./../data/mask.svs",
-			dtype='uint8')
+#read grid IDs from cmd
 
+grids = readGridIDs(sys.argv[1:])
 
-centers = getGrid(8207)
+f = open("./../data/actual_coll_features_perHEX.txt", "a+")
+try:
+	for gID in grids:
+		gID = int(gID)
+		#get mask
+		mask = getCollagenMask(gID)
+		centers = getGrid(gID)
+		print("Calculating statitics")
+#		f.write("gridID,width,length,curvature,area,connectivity,h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,h13\n")
+		for center in centers:
+			t0 = time.time()
+			c = [int(e) for e in center]
+			if (c[0] >= 112 and c[0] + 112 <= mask.shape[0] and c[1] >= 130 and c[1] + 130 <= mask.shape[1]):
+				patch = mask[c[0] - 112 : c[0] + 112, c[1] - 130 : c[1] + 130]
+				patch = numpy.array(patch)
+				collagen = emptyHex & patch
+				skeleton = skeletonize(collagen)
 
+				statistics = []
+				statistics.append(averageWidth(skeleton, collagen))
+				statistics.append(averageEdgeLength(skeleton))
+				statistics.append(averageCurvature(skeleton))
+				statistics.append(collagenAreaRatio(collagen))
+				statistics.append(collagenConnectivityRatio(collagen))
+				statistics.extend([e for e in mahotas.features.haralick(collagen).mean(0)])
 
-print("Calculating statitics")
-with open("./../data/features_8207.txt", "w+") as f:
-	f.write("width,length,curvature,area,connectivity,h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,h13\n")
-	for center in centers:
-		c = [int(e) for e in center]
-		if (c[0] >= 112 and c[0] + 112 <= mask.shape[0] and c[1] >= 130 and c[1] + 130 <= mask.shape[1]):
-			patch = mask[c[0] - 112 : c[0] + 112, c[1] - 130 : c[1] + 130]
-			patch = numpy.array(patch)
-			collagen = emptyHex & patch
-			skeleton = skeletonize(collagen)
-
-			statistics = []
-			statistics.append(round(averageWidth(skeleton, collagen),3))
-			statistics.append(round(averageEdgeLength(skeleton),3))
-			statistics.append(round(averageCurvature(skeleton),3))
-			statistics.append(round(collagenAreaRatio(collagen),3))
-			statistics.append(round(collagenConnectivityRatio(collagen),3))
-			statistics.extend([round(e,3) for e in mahotas.features.haralick(collagen).mean(0)])
-
-			f.write(','.join(str(e) for e in statistics))
-			f.write('\n')
-			f.flush()
-f.close()
+				f.write(','.join(str(e) for e in [gID]+statistics))
+				f.write('\n')
+				f.flush()
+			t1 = time.time()
+			print(t1-t0)
+			sys.stdout.flush()
+		print('DONE with ', gID)
+finally:
+	f.close()
 
 print("Statistics calculated")

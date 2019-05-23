@@ -4,6 +4,8 @@ import configNeomuleDB as config
 import openslide
 from tifffile import memmap
 import subprocess
+import sys
+import getopt
 
 def getOpenSlide(gID):
 	#GET HALO JOB IDs and CLASSIFIER IDs FROM GRIDTOOL DB
@@ -45,27 +47,27 @@ def getOpenSlide(gID):
 	print(loc_file)
 	return openslide.OpenSlide(loc_file)
 
-def getGrid(gID):
+def getGrid(gID,f='f'):
 	dsn = mysql.connector.connect(**config.gridtool_CONFIG)
 	cursor = dsn.cursor()
 	query = ''.join(["select * from locality_runs where gridId = '",str(gID),"'"])
-	#query = "describe locality_tiles"
 	cursor.execute(query)
 	rows = cursor.fetchone()
 	print(rows[0])
 	AID = rows[0]
-	#cursor.close()
 	dsn.close()
 
 	dsn = mysql.connector.connect(**config.gridtool_CONFIG)
 	cursor = dsn.cursor()
 	query = ''.join(["select * from locality_tiles where idAnalysis = '",str(AID),"'"])
-	#query = "describe locality_tiles"
 	cursor.execute(query)
 	CLST3 = []
 	row = cursor.fetchone()
 	while row is not None:
-   		CLST3.append([row[7],row[8]])
+		if f!= 'f':
+	   		CLST3.append([row[7],row[8],row[170]])
+		if f == 'f':
+			CLST3.append([row[7],row[8]])
     		row = cursor.fetchone()
 	dsn.close()
 	return CLST3
@@ -79,3 +81,48 @@ def getFibersMask(gID):
         else:
                 print('Could not find the mask.')
                 return None
+
+def getCollagenMask(gID):
+        svs = getOpenSlide(gID)
+        fnam = str(svs.properties['aperio.Filename'])
+        path = "".join(['../data/masks/',fnam,'_msk.svs'])
+        if os.path.exists(path):
+                return memmap(path,dtype='uint8')
+        else:
+                print('Could not find the mask.')
+                return None
+
+
+def readGridIDs(argv):
+        grids = []
+        try:
+                opts, args = getopt.getopt(argv,"hg:",["grids="])
+        except getopt.GetoptError:
+                print('test.py -g <gridID1> -g <gridID2>')
+                sys.exit(2)
+        for opt, arg in opts:
+                if opt in ('-h','--help'):
+                        print('test.py -g <gridID1> -g <gridID2>')
+                        sys.exit()
+                elif opt in ("-g", "--grids"):
+                        grids.append(arg)
+
+        return(grids)
+
+def getLocalityDistances(gID):
+	dsn = mysql.connector.connect(**config.gridtool_CONFIG)
+	cursor = dsn.cursor()
+	query = "select * from distance_runs where gridId = '"+str(gID)+"'"
+	cursor.execute(query)
+	rows = cursor.fetchone()
+	AID = rows[0]
+	query = "select * from distance_tiles where idAnalysis = '"+str(AID)+"'"
+	cursor.execute(query)
+	CLST3 = []
+	row = cursor.fetchone()
+	while row is not None:
+		CLST3.append(row[10])
+		row = cursor.fetchone()
+	dsn.close()
+	return CLST3
+

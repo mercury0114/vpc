@@ -6,12 +6,15 @@ from skimage.io import imread
 from scipy.ndimage import label
 from scipy.misc import imsave
 from PIL import Image, ImageDraw
+import numba
+from numba import jit
 
 def saveToFile(collagen, filename):
 	copy = collagen
 	copy[copy == 1] = 255
 	imsave(filename, copy)
 
+@jit(nopython = True)
 def sliding_window(image, stepSize, windowSize):
     for y in xrange(0, image.shape[0], stepSize):
         for x in xrange(0, image.shape[1], stepSize):
@@ -50,6 +53,7 @@ def extractCollagenWholeImage(imageFile, model):
 	# return cv2.erode(collagen, kernel, iterations = 1)
 	return im3
 
+@jit(nopython = True)
 def collagenAreaRatio(collagen):
 	count = 0
 	for x, y in np.ndindex(collagen.shape):
@@ -57,6 +61,7 @@ def collagenAreaRatio(collagen):
 			count += 1
 	return count / (collagen.shape[0] * collagen.shape[1])
 
+@jit(nopython = False)
 def collagenConnectivityRatio(collagen):
 	sum = 0
 	labelled, num = label(collagen)
