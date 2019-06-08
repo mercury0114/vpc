@@ -4,26 +4,24 @@ import numpy
 from tifffile import memmap
 from keras.models import load_model
 from scipy.misc import imsave
-from extractor import *
-from data import *
+from extractor import extractCollagen
+import os
 import sys
 
-print("Reading grid ID from cmd")
-grids = readGridIDs(sys.argv[1:])
-print(grids)
+sys.path.append("./../data")
+from data import *
+
+grids = readGridIDs("./../data/gIDs.txt")
 
 print("Loading model")
 model = load_model("./../data/model.h5")
-print(model.summary())
-sys.stdout.flush()
+print("Model loaded")
 
 for gID in grids:
 	print("Getting openslide")
-	gID = int(gID)
 	slide = getOpenSlide(gID)
 	afnam = slide.properties['aperio.Filename']
 	print(afnam)
-	sys.stdout.flush()
 	outfname = "".join(['../data/masks/',afnam,'_msk.svs'])
 	if os.path.isfile(outfname):
 		print("Mask already exists")
