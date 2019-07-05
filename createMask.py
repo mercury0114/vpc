@@ -39,7 +39,9 @@ for gID in grids:
 			patch = slide.read_region(location = (x, y), size = (s, s), level = 0)
 			patch = numpy.array(patch)[:,:,:3]
 			current = numpy.array(collagen[x:x+s, y:y+s])
-			collagen[x:x+s, y:y+s] = current | extractCollagen(patch, model)
+			# openslide uses (width, height) dimensions, tifffile.memmap (height, width).
+            # Thus, I am transposing the extracted collagen.
+			collagen[x:x+s, y:y+s] = current | numpy.transpose(extractCollagen(patch, model))
 	del collagen
 	print("Done with mask")
 
