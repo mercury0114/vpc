@@ -27,7 +27,8 @@ def extractCollagen(patch, model):
 	w[w <= threshold] = 0
 	w[w > threshold] = 1
 	w = w.astype(np.uint8)
-	return w.reshape(256, 256)
+	w = w.reshape(256, 256)
+	return w
 
 def extractCollagenWholeImage(imageFile, model):
 	imh,imw = 256,256
