@@ -22,11 +22,18 @@ def sliding_window(image, stepSize, windowSize):
 
 def extractCollagen(patch, model):
 	w = model.predict(patch.reshape(1, 256, 256, 3))
-	threshold = 0.5
+	threshold = 0.7
 	w[w <= threshold] = 0
 	w[w > threshold] = 1
 	w = w.astype(np.uint8)
-	return w.reshape(256, 256)
+	w = w.reshape(256, 256)
+	# For some reason boundary always becomes 1,
+    # So I am removing it
+	w[0:5, :] = 0
+	w[250:256,:] = 0
+	w[:,0:5] = 0
+	w[:,250:256] = 0
+	return w
 
 def extractCollagenWholeImage(imageFile, model):
 	imh,imw = 256,256
