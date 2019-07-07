@@ -7,6 +7,8 @@ import cv2
 from skimage import io
 from skimage.morphology import skeletonize
 from math import sqrt
+from PIL import Image, ImageDraw
+
 def countPixels(skeleton, i, j):
 	count = 0
 	for x, y in itertools.product((-1, 0, 1), (-1, 0, 1)):
@@ -140,6 +142,24 @@ def averageWidth(skeleton, collagen):
 	if (count == 0):
 		return 0.0
 	return width / count
+
+def drawhex(w=260,fill=1,inv=0):
+    h = int(np.sqrt(3)*.5*260 / 2) * 2
+    polygon = [(0,h/2),(w/4,0),(3*w/4,0),(w,h/2),(3*w/4,h),(w/4,h)]
+    img_ = Image.new('L', (w, h), 0)
+    ImageDraw.Draw(img_).polygon(polygon, outline=1, fill=fill)
+    img = np.array(img_)
+    if inv != 0:
+        img = ImageOps.invert(img_)
+        img = np.array(img) / 255.
+    return(img.astype(np.uint8))
+emptyHex = drawhex()
+
+def depth(collagen, centerX, centerY):
+	print(emptyHex.shape)
+	return 0.0
+
+
 
 # image = io.imread("mask.png")
 # image[image == 255] = 1
