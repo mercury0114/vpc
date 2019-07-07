@@ -21,7 +21,8 @@ def sliding_window(image, stepSize, windowSize):
             yield (x, y, image[y:y + windowSize[1], x:x + windowSize[0]])
 
 def extractCollagen(patch, model):
-	w = model.predict(patch.reshape(1, 256, 256, 3))
+	normalised = patch.astype(np.float) / 255
+	w = model.predict(normalised.reshape(1, 256, 256, 3))
 	threshold = 0.5
 	w[w <= threshold] = 0
 	w[w > threshold] = 1
