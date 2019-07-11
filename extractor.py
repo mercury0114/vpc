@@ -28,6 +28,18 @@ def extractCollagen(patch, model):
 	w[w > threshold] = 1
 	w = w.astype(np.uint8)
 	w = w.reshape(256, 256)
+
+    # We want to get rid of small collagen blops:
+	labelled, num = label(w)
+	counts = [0] * (num + 1)
+	for x in range(patch.shape[0]):
+		for y in range(patch.shape[1]):
+			counts[labelled[x,y]] += 1
+
+	for x in range(patch.shape[0]):
+		for y in range(patch.shape[1]):
+			if (counts[labelled[x,y]] < 100):
+				w[x,y] = 0
 	return w
 
 def extractCollagenWholeImage(imageFile, model):

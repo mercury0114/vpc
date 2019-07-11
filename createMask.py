@@ -7,6 +7,7 @@ from scipy.misc import imsave
 from extractor import extractCollagen
 import os
 import sys
+import time
 
 sys.path.append("./../data")
 from data import *
@@ -33,7 +34,9 @@ for gID in grids:
 
 	s = 256
 
+	
 	print("Computing collagen mask")
+	startTime = time.time()
 	for x in range(0, slide.dimensions[0] - (s-1), s/2):
 		for y in range(0, slide.dimensions[1] - (s-1), s/2):
 			patch = slide.read_region(location = (x, y), size = (s, s), level = 0)
@@ -43,7 +46,8 @@ for gID in grids:
             # Thus, I am transposing the extracted collagen.
 			collagen[x:x+s, y:y+s] = current | numpy.transpose(extractCollagen(patch, model))
 	del collagen
-	print("Done with mask")
+	endTime = time.time()
+	print("Mask took seconds to compute:", int(endTime - startTime))
 
 print("DONE with ALL")
 
