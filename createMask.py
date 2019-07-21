@@ -5,6 +5,7 @@ from tifffile import memmap
 from keras.models import load_model
 from scipy.misc import imsave
 from extractor import extractCollagen
+from extractor import removeSmallCollagenBlops
 import os
 import sys
 import time
