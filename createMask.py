@@ -47,12 +47,12 @@ for gID in grids:
 			temp[x:x+s, y:y+s] = current | numpy.transpose(extractCollagen(patch, model))
 
 	print("Removing small blops")
-    collagen = memmap(outfname, shape=temp.shape, dtype='uint8')
-    for x in range(0, temp.shape[0] - (s-1), s/2):
-        for y in range(0, temp.shape[1] - (s-1), s/2):
-            patch = numpy.array(temp[x:x+s, y:y+s])
-            current = numpy.array(collagen[x:x+s, y:y+s])
-            collagen[x:x+s, y:y+s] = current | removeSmallCollagenBlops(patch)
+	collagen = memmap(outfname, shape=temp.shape, dtype='uint8')
+	for x in range(0, temp.shape[0] - (s-1), s/2):
+		for y in range(0, temp.shape[1] - (s-1), s/2):
+			patch = numpy.array(temp[x:x+s, y:y+s])
+			current = numpy.array(collagen[x:x+s, y:y+s])
+			collagen[x:x+s, y:y+s] = current | removeSmallCollagenBlops(patch)
 
 	del temp
 	os.remove(tempFile)
