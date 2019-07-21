@@ -27,27 +27,37 @@ for gID in grids:
 	if os.path.isfile(outfname):
 		print("Mask already exists")
 		continue
-	collagen = memmap(outfname,
+	
+	tempFile = "./../data/temp.tiff"
+	temp = memmap(tempFile,
 	           shape=slide.dimensions,
 	           dtype='uint8',
 	           bigtiff = True)
 
 	s = 256
 
-	
 	print("Computing collagen mask")
-	startTime = time.time()
 	for x in range(0, slide.dimensions[0] - (s-1), s/2):
 		for y in range(0, slide.dimensions[1] - (s-1), s/2):
 			patch = slide.read_region(location = (x, y), size = (s, s), level = 0)
 			patch = numpy.array(patch)[:,:,:3]
-			current = numpy.array(collagen[x:x+s, y:y+s])
+			current = numpy.array(temp[x:x+s, y:y+s])
 			# openslide uses (width, height) dimensions, tifffile.memmap (height, width).
             # Thus, I am transposing the extracted collagen.
-			collagen[x:x+s, y:y+s] = current | numpy.transpose(extractCollagen(patch, model))
+			temp[x:x+s, y:y+s] = current | numpy.transpose(extractCollagen(patch, model))
+
+	print("Removing small blops")
+    collagen = memmap(outfname, shape=temp.shape, dtype='uint8')
+    for x in range(0, temp.shape[0] - (s-1), s/2):
+        for y in range(0, temp.shape[1] - (s-1), s/2):
+            patch = numpy.array(temp[x:x+s, y:y+s])
+            current = numpy.array(collagen[x:x+s, y:y+s])
+            collagen[x:x+s, y:y+s] = current | removeSmallCollagenBlops(patch)
+
+	del temp
+	os.remove(tempFile)
+	collagen[collagen == 1] = 255
 	del collagen
-	endTime = time.time()
-	print("Mask took seconds to compute:", int(endTime - startTime))
 
 print("DONE with ALL")
 

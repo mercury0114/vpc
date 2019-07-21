@@ -20,6 +20,19 @@ def sliding_window(image, stepSize, windowSize):
         for x in xrange(0, image.shape[1], stepSize):
             yield (x, y, image[y:y + windowSize[1], x:x + windowSize[0]])
 
+def removeSmallCollagenBlops(patch):
+	labelled, num = label(patch)
+	counts = [0] * (num + 1)
+	for x in range(patch.shape[0]):
+		for y in range(patch.shape[1]):
+	 		counts[labelled[x,y]] += 1
+
+	for x in range(patch.shape[0]):
+	 	for y in range(patch.shape[1]):
+	 		if (counts[labelled[x,y]] < 100):
+				patch[x,y] = 0
+	return patch
+
 def extractCollagen(patch, model):
 	normalised = patch.astype(np.float) / 255
 	w = model.predict(normalised.reshape(1, 256, 256, 3))
@@ -28,18 +41,6 @@ def extractCollagen(patch, model):
 	w[w > threshold] = 1
 	w = w.astype(np.uint8)
 	w = w.reshape(256, 256)
-
-    # We want to get rid of small collagen blops:
-	labelled, num = label(w)
-	counts = [0] * (num + 1)
-	for x in range(patch.shape[0]):
-		for y in range(patch.shape[1]):
-			counts[labelled[x,y]] += 1
-
-	for x in range(patch.shape[0]):
-		for y in range(patch.shape[1]):
-			if (counts[labelled[x,y]] < 100):
-				w[x,y] = 0
 	return w
 
 def extractCollagenWholeImage(imageFile, model):
