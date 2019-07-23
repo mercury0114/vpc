@@ -4,11 +4,11 @@ import numpy
 from tifffile import memmap
 from keras.models import load_model
 from scipy.misc import imsave
-from extractor import extractCollagen
+from extractor import computeRawCollagenMask
 from extractor import removeSmallCollagenBlops
+from extractor import fillHoles
 import os
 import sys
-import time
 
 sys.path.append("./../data")
 from data import *
@@ -20,45 +20,26 @@ model = load_model("./../data/model.h5")
 print("Model loaded")
 
 for gID in grids:
-	print("Getting openslide")
-	slide = getOpenSlide(gID)
-	afnam = slide.properties['aperio.Filename']
-	print(afnam)
-	outfname = "".join(['../data/masks/',afnam,'_msk.svs'])
-	if os.path.isfile(outfname):
-		print("Mask already exists")
-		continue
-	
-	tempFile = "./../data/temp.tiff"
-	temp = memmap(tempFile,
-	           shape=slide.dimensions,
-	           dtype='uint8',
-	           bigtiff = True)
+    print("Getting openslide")
+    slide = getOpenSlide(gID)
+    afnam = slide.properties['aperio.Filename']
+    print(afnam)
+    outdir = "".join(['../data/masks/', afnam, '/'])
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
 
-	s = 256
+    print("Computing raw collagen mask")
+    rawCollagenFile = outdir + "raw.tiff"
+    computeRawCollagenMask(slide, rawCollagenFile, model)
 
-	print("Computing collagen mask")
-	for x in range(0, slide.dimensions[0] - (s-1), s/2):
-		for y in range(0, slide.dimensions[1] - (s-1), s/2):
-			patch = slide.read_region(location = (x, y), size = (s, s), level = 0)
-			patch = numpy.array(patch)[:,:,:3]
-			current = numpy.array(temp[x:x+s, y:y+s])
-			# openslide uses (width, height) dimensions, tifffile.memmap (height, width).
-            # Thus, I am transposing the extracted collagen.
-			temp[x:x+s, y:y+s] = current | numpy.transpose(extractCollagen(patch, model))
+    print("Removing small blops")
+    collagenWithoutBlopsFile = outdir + "without_blops.tiff"
+    removeSmallCollagenBlops(rawCollagenFile, collagenWithoutBlopsFile)
 
-	print("Removing small blops")
-	collagen = memmap(outfname, shape=temp.shape, dtype='uint8')
-	for x in range(0, temp.shape[0] - (s-1), s/2):
-		for y in range(0, temp.shape[1] - (s-1), s/2):
-			patch = numpy.array(temp[x:x+s, y:y+s])
-			current = numpy.array(collagen[x:x+s, y:y+s])
-			collagen[x:x+s, y:y+s] = current | removeSmallCollagenBlops(patch)
+    print("Filling holes in collagen")
+    collagenHolesFilledFile = outdir + "holes_filled.tiff"
+    fillHoles(collagenWithoutBlopsFile, collagenHolesFilledFile)
 
-	del temp
-	os.remove(tempFile)
-	collagen[collagen == 1] = 255
-	del collagen
-
+    print("Done with " + afnam)
 print("DONE with ALL")
 
