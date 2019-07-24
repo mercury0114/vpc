@@ -4,6 +4,7 @@ from scipy.ndimage import label
 from PIL import Image, ImageDraw
 from tifffile import memmap
 import numpy
+import cv2
 
 s = 256
 
@@ -75,7 +76,21 @@ def extractCollagen(patch, model):
     return w
 
 def fillHoles(oldCollagenFile, newCollagenFile):
-    print("TODO(mariusl): IMPLEMENT")
+    if (os.path.isfile(newCollagenFile)):
+        print(newCollagenFile + " already exists.")
+    success = False
+    try:
+        oldCollagen = memmap(oldCollagenFile, dtype='uint8')
+        newCollagen = memmap(newCollagenFile, shape=oldCollagen.shape, dtype='uint8')
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (20, 20))
+        newCollagen[:,:] = cv2.morphologyEx(oldCollagen, cv2.MORPH_CLOSE, kernel)
+        newCollagen[newCollagen == 1] = 255
+        del oldCollagen
+        del newCollagen
+        success = True
+    finally:
+        if (not success):
+            os.remove(newCollagenFile)
 
 def collagenAreaRatio(collagen):
     count = 0
