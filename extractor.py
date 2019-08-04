@@ -3,6 +3,7 @@ import os
 from scipy.ndimage import label
 from PIL import Image, ImageDraw
 from tifffile import memmap
+from skimage.morphology import skeletonize
 import numpy
 import cv2
 
@@ -78,6 +79,7 @@ def extractCollagen(patch, model):
 def fillHoles(oldCollagenFile, newCollagenFile):
     if (os.path.isfile(newCollagenFile)):
         print(newCollagenFile + " already exists.")
+        return
     success = False
     try:
         oldCollagen = memmap(oldCollagenFile, dtype='uint8')
@@ -91,6 +93,25 @@ def fillHoles(oldCollagenFile, newCollagenFile):
     finally:
         if (not success):
             os.remove(newCollagenFile)
+
+def computeSkeleton(collagenFile, skeletonFile):
+    if (os.path.isfile(skeletonFile)):
+        print(skeletonFile + " already exists.")
+        return
+    success = False
+    try:
+        collagen = memmap(collagenFile, dtype='uint8')
+        skeleton = memmap(skeletonFile, dtype='uint8', shape=collagen.shape)
+        skeleton[:,:] = collagen
+        skeleton[skeleton == 255] = 1
+        skeleton[:,:] = skeletonize(skeleton)
+        skeleton[skeleton == 1] = 255
+        del collagen
+        del skeleton
+        success = True
+    finally:
+        if (not success):
+            os.remove(skeletonFile)
 
 def collagenAreaRatio(collagen):
     count = 0

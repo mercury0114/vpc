@@ -1,6 +1,7 @@
 from tifffile import memmap
 from scipy.ndimage import label
 from scipy.misc import imsave
+import numpy
 
 class Fiber:
 	def __init__(self, maskFilePath, xFrom, xTo, yFrom, yTo, x, y):
@@ -12,11 +13,16 @@ class Fiber:
 		self.x = x
 		self.y = y
 
-	def drawFiber(self, outputFilePath):
+	def getFiberBoundingBox(self):
 		mask = memmap(self.maskFilePath, dtype='uint8')
-		box = mask[self.xFrom : self.xTo, self.yFrom : self.yTo]
+		box = numpy.array(mask[self.xFrom : self.xTo, self.yFrom : self.yTo])
 		labelled, num = label(box)
 		v = labelled[self.x - self.xFrom, self.y - self.yFrom]
 		box[labelled == v] = 255
 		box[labelled != v] = 0
+		return box
+
+	# For debugging mainly
+	def drawFiber(self, outputFilePath):
+		box = self.getFiberBoundingBox()
 		imsave(outputFilePath, box)
