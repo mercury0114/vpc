@@ -4,6 +4,7 @@ import numpy
 import scipy
 import cv2
 
+from collections import deque
 from skimage import io
 from skimage.morphology import skeletonize
 from math import sqrt
@@ -59,20 +60,53 @@ def labelSkeletonParts(partitionFile, labelledFile):
     partition = memmap(partitionFile)
     labelled = memmap(labelledFile, shape = partition.shape, dtype='uint32')
     pixels = numpy.nonzero(partition)
-    newLabel = 1
+    labelNumber = 0
     for p in range(len(pixels[0])):
         if (labelled[pixels[0][p], pixels[1][p]] == 0):
+            labelNumber += 1
             stack = [(pixels[0][p],pixels[1][p])]
             while(len(stack) > 0):
                 x,y = stack.pop()
-                labelled[x,y] = newLabel
+                labelled[x,y] = labelNumber
                 neighbours = findNeighbours(partition, x, y)
                 for n in neighbours:
                     if (labelled[n[0], n[1]] == 0):
                         stack.append(n)
-            newLabel += 1
     del partition
     del labelled
+    return labelNumber
+
+def makeFibersFromSkeleton(collagenFile, labelledSkeletonFile, fibersFile):
+    if (os.path.isfile(fibersFile)):
+        print(fibersFile + " already exists.")
+        return
+
+    collagen = memmap(collagenFile)
+    skeleton = memmap(labelledSkeletonFile)
+    assert(collagen.shape == skeleton.shape), "shapes do not match"
+    fibers = memmap(fibersFile, shape=collagen.shape, dtype='uint32')
+    fibers[:,:] = skeleton
+    del skeleton
+
+    # Perfoming a breath first search to assign a value to each collagen
+    # pixels based on the value of the closest skeleton label.
+    pixels = numpy.nonzero(fibers)
+    queue = deque()
+    for p in range(len(pixels[0])):
+        queue.appendleft((pixels[0][p], pixels[1][p]))
+
+    while (len(queue) > 0):
+        x,y = queue.pop()
+        neighbours = findNeighbours(collagen, x, y)
+        for n in neighbours:
+            if (fibers[n[0], n[1]] == 0):
+                fibers[n[0], n[1]] = fibers[x,y]
+                queue.appendleft(n)
+
+    del collagen
+    del fibers
+
+
 
 def junction(skeleton, i, j):
 	return countNeighbours(skeleton, i, j) > 2
