@@ -1,28 +1,48 @@
 from tifffile import memmap
-from scipy.ndimage import label
-from scipy.misc import imsave
+from skimage.morphology import skeletonize
 import numpy
+import itertools
 
-class Fiber:
-	def __init__(self, maskFilePath, xFrom, xTo, yFrom, yTo, x, y):
-		self.maskFilePath = maskFilePath
-		self.xFrom = xFrom
-		self.xTo = xTo
-		self.yFrom = yFrom
-		self.yTo = yTo
-		self.x = x
-		self.y = y
+def findNeighbours(image, x, y):
+    neighbours = []
+    for x0, y0 in itertools.product((-1, 0, 1), (-1, 0, 1)):
+        if (x + x0 >= 0 and x + x0 < image.shape[0] and
+            y + y0 >= 0 and y + y0 < image.shape[1] and image[x + x0, y + y0]):
+            if (x != 0 or y != 0):
+                neighbours.append((x + x0, y + y0))
+    return neighbours
 
-	def getFiberBoundingBox(self):
-		mask = memmap(self.maskFilePath, dtype='uint8')
-		box = numpy.array(mask[self.xFrom : self.xTo, self.yFrom : self.yTo])
-		labelled, num = label(box)
-		v = labelled[self.x - self.xFrom, self.y - self.yFrom]
-		box[labelled == v] = 255
-		box[labelled != v] = 0
-		return box
+def extractOneFiber(collagen, x, y):
+    fiberId = collagen[x, y]
+    xMin = xMax = x
+    yMin = yMax = y
+    stack = [(x,y)]
+    visited = {}
+    while len(stack) > 0:
+        x,y = stack.pop()
+        visited[x, y] = True
+        xMin = min(xMin, x)
+        yMin = min(yMin, y)
+        xMax = max(xMax, x)
+        yMax = max(yMax, y)
+        neighbours = findNeighbours(collagen, x, y)
+        for n in neighbours:
+            if collagen[n] == fiberId and not n in visited:
+                stack.append(n)
+    fiber = numpy.zeros(shape=(xMax+1-xMin, yMax+1-yMin), dtype='uint8')
+    fiber[:,:] = collagen[xMin : xMax + 1, yMin : yMax + 1]
+    fiber[fiber != fiberId] = 0
+    fiber[fiber == fiberId] = 255
+    return fiber
 
-	# For debugging mainly
-	def drawFiber(self, outputFilePath):
-		box = self.getFiberBoundingBox()
-		imsave(outputFilePath, box)
+def length(fiber):
+    copy = numpy.copy(fiber)
+    copy[copy != 0] = 1
+    return skeletonize(copy).sum()
+
+def width(fiber):
+    return (fiber > 0).sum() / length(fiber)
+
+
+
+

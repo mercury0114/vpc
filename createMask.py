@@ -40,6 +40,10 @@ for gID in grids:
     collagenHolesFilledFile = outdir + "holes_filled.tiff"
     fillHoles(collagenWithoutBlopsFile, collagenHolesFilledFile)
 
+    print("Computing skeleton")
+    skeletonFile = outdir + "skeleton.tiff"
+    computeSkeleton(
+
     print("Done with " + afnam)
 print("DONE with ALL")
 
