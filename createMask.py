@@ -20,39 +20,38 @@ model = load_model("./../data/model.h5")
 print("Model loaded")
 
 for gID in grids:
+    print("Computing for gID " + str(gID))
     print("Getting openslide")
     slide = getOpenSlide(gID)
-    afnam = slide.properties['aperio.Filename']
-    print(afnam)
-    outdir = "".join(['../data/masks/', afnam, '/'])
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
+    masksDir = "".join(['../data/masks/', str(gID), '/'])
+    if not os.path.exists(masksDir):
+        os.makedirs(masksDir)
 
     print("Computing raw collagen mask")
-    rawCollagenFile = outdir + "raw.tiff"
+    rawCollagenFile = masksDir + "raw.tiff"
     computeRawCollagenMask(slide, rawCollagenFile, model)
 
     print("Removing small blops")
-    collagenWithoutBlopsFile = outdir + "without_blops.tiff"
+    collagenWithoutBlopsFile = masksDir + "without_blops.tiff"
     removeSmallCollagenBlops(rawCollagenFile, collagenWithoutBlopsFile)
 
     print("Filling holes in collagen")
-    collagenHolesFilledFile = outdir + "holes_filled.tiff"
+    collagenHolesFilledFile = masksDir + "holes_filled.tiff"
     fillHoles(collagenWithoutBlopsFile, collagenHolesFilledFile)
 
     print("Computing skeleton")
-    skeletonFile = outdir + "skeleton.tiff"
+    skeletonFile = masksDir + "skeleton.tiff"
     computeSkeleton(collagenHolesFilledFile, skeletonFile)
 
     print("Labelling partitioned skeleton")
-    labelledFile = outdir + "labels.tiff"
+    labelledFile = masksDir + "labels.tiff"
     numberOfParts = labelSkeletonParts(partitionFile, labelledFile)
     print("Labelled into " + str(numberOfParts) + " parts.")
 
     print("Splitting collagen into fibers")
-    fibersFile = outdir + "fibers.tiff"
+    fibersFile = masksDir + "fibers.tiff"
     makeFibersFromSkeleton(collagenHolesFilledFile, labelledFile, fibersFile)
 
-    print("Done with " + afnam)
+    print("Done with " + str(gID))
 print("DONE with ALL")
 
