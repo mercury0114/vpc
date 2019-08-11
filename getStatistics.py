@@ -41,7 +41,6 @@ for gID in grids:
             patch = fibers[c[0] - 112 : c[0] + 112, c[1] - 130 : c[1] + 130]
             patch = numpy.array(patch)
             hexagon = emptyHex & patch
-            print(hexagon.max())
 
 			#statistics = []
 			#statistics.append(averageWidth(skeleton, collagen))
