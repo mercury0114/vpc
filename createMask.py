@@ -42,7 +42,16 @@ for gID in grids:
 
     print("Computing skeleton")
     skeletonFile = outdir + "skeleton.tiff"
-    computeSkeleton(
+    computeSkeleton(collagenHolesFilledFile, skeletonFile)
+
+    print("Labelling partitioned skeleton")
+    labelledFile = outdir + "labels.tiff"
+    numberOfParts = labelSkeletonParts(partitionFile, labelledFile)
+    print("Labelled into " + str(numberOfParts) + " parts.")
+
+    print("Splitting collagen into fibers")
+    fibersFile = outdir + "fibers.tiff"
+    makeFibersFromSkeleton(collagenHolesFilledFile, labelledFile, fibersFile)
 
     print("Done with " + afnam)
 print("DONE with ALL")
