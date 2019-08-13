@@ -7,6 +7,10 @@ from scipy.misc import imsave
 from extractor import computeRawCollagenMask
 from extractor import removeSmallCollagenBlops
 from extractor import fillHoles
+from skeletonizer import partitionSkeleton
+from skeletonizer import computeSkeleton
+from skeletonizer import labelSkeletonParts
+from skeletonizer import makeFibersFromSkeleton
 import os
 import sys
 
@@ -33,7 +37,7 @@ for gID in grids:
 
     print("Removing small blops")
     collagenWithoutBlopsFile = masksDir + "without_blops.tiff"
-    removeSmallCollagenBlops(rawCollagenFile, collagenWithoutBlopsFile)
+    removeSmallCollagenBlops(rawCollagenFile, collagenWithoutBlopsFile, 100)
 
     print("Filling holes in collagen")
     collagenHolesFilledFile = masksDir + "holes_filled.tiff"
@@ -43,9 +47,17 @@ for gID in grids:
     skeletonFile = masksDir + "skeleton.tiff"
     computeSkeleton(collagenHolesFilledFile, skeletonFile)
 
+    print("Partitioning skeleton")
+    partitionFile = masksDir + "partition.tiff"
+    partitionSkeleton(skeletonFile, partitionFile)
+
+    print("Removing short skeleton segments")
+    shortSkeletonRemovedFile = masksDir + "short_removed.tiff"
+    removeSmallCollagenBlops(partitionFile, shortSkeletonRemovedFile, 5)
+
     print("Labelling partitioned skeleton")
     labelledFile = masksDir + "labels.tiff"
-    numberOfParts = labelSkeletonParts(partitionFile, labelledFile)
+    numberOfParts = labelSkeletonParts(shortSkeletonRemovedFile, labelledFile)
     print("Labelled into " + str(numberOfParts) + " parts.")
 
     print("Splitting collagen into fibers")

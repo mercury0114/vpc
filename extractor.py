@@ -9,7 +9,7 @@ import cv2
 
 s = 256
 
-def removeSmallCollagenBlops(oldFile, newFile):
+def removeSmallCollagenBlops(oldFile, newFile, threshold):
     assert(os.path.isfile(oldFile)), oldFile + " does not exist"
     if (os.path.isfile(newFile)):
         print(newFile + " already exists")
@@ -21,11 +21,11 @@ def removeSmallCollagenBlops(oldFile, newFile):
         for y in range(0, oldCollagen.shape[1] - (s-1), s/2):
             patch = numpy.array(oldCollagen[x:x+s, y:y+s])
             current = numpy.array(newCollagen[x:x+s, y:y+s])
-            newCollagen[x:x+s, y:y+s] = current | removeBlops(patch)
+            newCollagen[x:x+s, y:y+s] = current | removeBlops(patch, threshold)
     del oldCollagen
     del newCollagen
 
-def removeBlops(patch):
+def removeBlops(patch, threshold):
     labelled, num = label(patch, structure = [[1,1,1],[1,1,1],[1,1,1]])
     counts = [0] * (num + 1)
     for x in range(patch.shape[0]):
@@ -34,7 +34,7 @@ def removeBlops(patch):
 
     for x in range(patch.shape[0]):
         for y in range(patch.shape[1]):
-            if (counts[labelled[x,y]] < 100):
+            if (counts[labelled[x,y]] < threshold):
                 patch[x,y] = 0
     return patch
 
