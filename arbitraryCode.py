@@ -1,6 +1,12 @@
 from extractor import *
 from skeletonizer import *
 
+import sys
+sys.path.append("./../data")
+from data import *
+print(readGridIDs())
+assert(False)
+
 outdir = "./../data/masks/smaller/"
 rawCollagenFile = outdir + "raw.tiff"
 

@@ -27,6 +27,7 @@ for gID in grids:
     print("Computing for gID " + str(gID))
     print("Getting openslide")
     slide = getOpenSlide(gID)
+    print(slide.properties['aperio.Filename'])
     masksDir = "".join(['../data/masks/', str(gID), '/'])
     if not os.path.exists(masksDir):
         os.makedirs(masksDir)

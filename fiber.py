@@ -29,10 +29,11 @@ def extractOneFiber(collagen, x, y):
         for n in neighbours:
             if collagen[n] == fiberId and not n in visited:
                 stack.append(n)
-    fiber = numpy.zeros(shape=(xMax+1-xMin, yMax+1-yMin), dtype='uint8')
+    fiber = numpy.zeros(shape=(xMax+1-xMin, yMax+1-yMin), dtype='uint32')
     fiber[:,:] = collagen[xMin : xMax + 1, yMin : yMax + 1]
     fiber[fiber != fiberId] = 0
     fiber[fiber == fiberId] = 255
+    print(fiber.max())
     return fiber
 
 def length(fiber):

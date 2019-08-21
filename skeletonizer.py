@@ -222,7 +222,7 @@ def shortestDistance(i, j, collagen):
 	areaCopy = numpy.copy(area)
 	areaCopy[area == 0] = 1
 	areaCopy[area != 0] = 0
-	pixels = numpy.stack(np.nonzero(areaCopy), axis = -1)
+	pixels = numpy.stack(numpy.nonzero(areaCopy), axis = -1)
 	# pixels = cv2.findNonZero(areaCopy)
 	if (len(pixels) == 0):
 		return 60

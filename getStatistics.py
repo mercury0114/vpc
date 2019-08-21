@@ -29,13 +29,47 @@ def drawhex():
     return img
 emptyHex = drawhex()
 
-grids = readGridIDs("./../data/gIDs.txt")
-	
+
+def getHexStatistics(gID):
+    mask = memmap("./../data/masks/" + str(gID) + "/holes_filled.tiff")
+    grid = getGrid(gID)
+    directory = "./../data/statistics/" + str(gID) + "/"
+    if not os.path.isdir(directory):
+        os.mkdir(directory)
+    f = open(directory + "hex.txt", "w")
+    f.write("hexX,hexY,class,distance,width,length,curvature,area,connectivity,h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,h13\n")
+    for center in grid:
+        c = [int(e) for e in center]
+        if (c[0] >= h/2 and c[0] + h/2 <= mask.shape[0] and c[1] >= w/2 and c[1] + w/2 <= mask.shape[1]):
+            patch = mask[c[0] - h/2 : c[0] + h/2, c[1] - w/2 : c[1] + w/2]
+            patch = numpy.array(patch)
+            collagen = emptyHex & patch
+            if (collagen.max() > 0):
+                print("Dealing with ", c)
+                collagen[collagen > 0] = 1
+                skeleton = skeletonize(collagen)
+                statistics = c[:]
+                statistics.append(averageWidth(skeleton, collagen))
+                statistics.append(averageEdgeLength(skeleton))
+                statistics.append(averageCurvature(skeleton))
+                statistics.append(collagenAreaRatio(collagen))
+                statistics.append(collagenConnectivityRatio(collagen))
+                statistics.extend([e for e in mahotas.features.haralick(collagen).mean(0)])
+                f.write(','.join(str(e) for e in statistics))
+                f.write('\n')
+                f.flush()
+
+# grids = readGridIDs("./../data/gIDs.txt")
+grids = ['8286']
+
 for gID in grids:
     print("Dealing with " + str(gID))
+    getHexStatistics(gID)
+    assert(False)
+
     fibers = memmap("./../data/masks/" + str(gID) + "/fibers.tiff")
     centers = getGrid(gID)
-    f = open("./../data/statistics/" + str(gID), "w")
+    f = open("./../data/statistics/" + str(gID) + "/fibers.txt", "w")
     f.write("hexX,hexY,distance,fiberId,width,length,h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,h13\n")
     f.flush()
     i = 0
@@ -52,9 +86,7 @@ for gID in grids:
                 for y in range(hexagon.shape[1]):
                     fiberId = hexagon[x,y]
                     if (fiberId > 0 and not fiberId in processedFiber):
-                        print("Extracting")
                         fiber = extractOneFiber(fibers, c[0] - h/2 + x, c[1] - w/2 + y)
-                        print(fiber.shape)
                         statistics = c[:]
                         statistics.append(fiberId)
                         statistics.append(length(fiber))
