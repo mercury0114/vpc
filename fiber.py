@@ -33,7 +33,6 @@ def extractOneFiber(collagen, x, y):
     fiber[:,:] = collagen[xMin : xMax + 1, yMin : yMax + 1]
     fiber[fiber != fiberId] = 0
     fiber[fiber == fiberId] = 255
-    print(fiber.max())
     return fiber
 
 def length(fiber):
@@ -42,7 +41,10 @@ def length(fiber):
     return skeletonize(copy).sum()
 
 def width(fiber):
-    return (fiber > 0).sum() / length(fiber)
+    return (fiber > 0).sum() // length(fiber)
+
+def areaRatio(fiber):
+    return float((fiber > 0).sum()) / (fiber.shape[0] * fiber.shape[1])
 
 
 
