@@ -34,7 +34,6 @@ emptyHex = drawhex()
 statisticsHeader ="hexX,hexY,class,distance,length,width,areaRatio,h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,h13\n"
 aggregatedHeader ="class,distance,length,width,areaRatio,h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,h13\n"
 
-
 def getStatistics(collagen, center):
     statistics = center[:]
     statistics.append(length(collagen))
@@ -72,17 +71,20 @@ def aggregateStatistics(fullFile, aggregatedFile):
         flushToFile(statistics, aggregated)
     aggregated.close()
 
-grids = ['8286']
+grids = readGridIDs("./../data/gIDs.txt")
 
-start = time.time()
 for gID in grids:
     print("Dealing with " + str(gID))
-    fibers = memmap("./../data/masks/" + str(gID) + "/fibers.tiff")
-    grid = getGrid(gID)
     directory = "./../data/statistics/" + str(gID) + "/"
     if (os.path.isdir(directory)):
+        print(directory + " already exists")
         continue
     os.mkdir(directory)
+
+    start = time.time()
+    fibers = memmap("./../data/masks/" + str(gID) + "/fibers.tiff")
+    grid = getGrid(gID)
+
 
     hexFile = open(directory + "hex.txt", "w")
     fiberFile = open(directory + "fiber.txt", "w")
@@ -118,7 +120,36 @@ for gID in grids:
 
     aggregateStatistics(directory + "hex.txt", directory + "aggregated_hex.txt")
     aggregateStatistics(directory + "fiber.txt", directory + "aggregated_fiber.txt")
+    print(time.time() - start)
     print('DONE with ', gID)
-
-print(time.time() - start)
 print("Statistics calculated")
+
+
+def merge(aggregatedName, mergeName):
+    mergedHeader ="rank,gID,length,width,areaRatio,h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,h13\n"
+    merged = open(mergeName, "w")
+    merged.write(mergedHeader)
+    for gID in grids:
+        f = open("./../data/statistics/" + gID + "/" + aggregatedName)
+        next(f)
+        statistics = [[float(x) for x in line.split(',')] for line in f]
+
+        for rank in range(-4, 5):
+            d = abs(rank)
+            c = 1 # tumor
+            if (rank == 0):
+                c = 4 # margin
+            if (rank < 0):
+                c = 2 # stroma
+            matched_lines = [line for line in statistics if (line[0] == c and line[1] == d)]
+            if (len(matched_lines) > 0):
+                line = matched_lines[0]
+                line[0] = gID
+                line[1] = rank
+                flushToFile(line, merged)
+    merged.close()
+
+merge("aggregated_hex.txt", "./../data/statistics/merged_hex.txt")
+merge("aggregated_fiber.txt", "./../data/statistics/merged_fiber.txt")
+print("Statistics merged")
+
