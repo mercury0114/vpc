@@ -19,16 +19,15 @@ def computeRawCollagenMask(model, image, rawCollagenFile):
 
 
 print("Loading model")
-model = load_model("./../data/trained.h5")
+model = load_model("model.h5")
 print("Model loaded")
 
 
 files = os.listdir("./../data/1500/")
-outdir = "./../data/masks/"
 
 for file in files:
     gID = os.path.splitext(file)[0]
-    outdir = "".join(['../data/masks/', str(gID), '/'])
+    outdir = "".join(["./../data/masks1500/", str(gID), '/'])
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     
@@ -39,7 +38,7 @@ for file in files:
 
     print("Removing small blops")
     collagenWithoutBlopsFile = outdir + "without_blops.tiff"
-    removeSmallCollagenBlops(rawCollagenFile, collagenWithoutBlopsFile, 20)
+    removeSmallCollagenBlops(rawCollagenFile, collagenWithoutBlopsFile, 100)
 
     print("Filling holes in collagen")
     collagenHolesFilledFile = outdir + "holes_filled.tiff"
