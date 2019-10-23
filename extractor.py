@@ -59,7 +59,7 @@ def extractCollagen(patch, model):
     w = model.predict(normalised.reshape(1, 256, 256, 3))
     threshold = 0.5
     w[w <= threshold] = 0
-    w[w > threshold] = 1
+    w[w > threshold] = 255
     w = w.astype(numpy.uint8)
     w = w.reshape(256, 256)
     return w
