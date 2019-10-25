@@ -52,9 +52,13 @@ for file in files:
     partitionFile = outdir + "partition.tiff"
     partitionSkeleton(skeletonFile, partitionFile)
 
+    print("Removing short skeleton segments")
+    shortSkeletonRemovedFile = outdir + "short_removed.tiff"
+    removeSmallCollagenBlops(partitionFile, shortSkeletonRemovedFile, 5)
+
     print("Labelling partitioned skeleton")
     labelledFile = outdir + "labels.tiff"
-    numberOfParts = labelSkeletonParts(partitionFile, labelledFile)
+    numberOfParts = labelSkeletonParts(shortSkeletonRemovedFile, labelledFile)
     print("Labelled into " + str(numberOfParts) + " parts.")
 
     print("Splitting collagen into fibers")

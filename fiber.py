@@ -33,7 +33,6 @@ def extractOneFiber(collagen, x, y):
     fiber[:,:] = collagen[xMin : xMax + 1, yMin : yMax + 1]
     fiber[fiber != fiberId] = 0
     fiber[fiber == fiberId] = 255
-    print(fiber.shape)
     return fiber
 
 def length(fiber):
