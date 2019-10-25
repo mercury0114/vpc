@@ -19,7 +19,7 @@ def computeRawCollagenMask(model, image, rawCollagenFile):
 
 
 print("Loading model")
-model = load_model("model.h5")
+model = load_model("./../data/model.h5")
 print("Model loaded")
 
 
