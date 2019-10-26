@@ -44,9 +44,7 @@ for gID in grids:
         fiberId = fibers[nonzero[0][n], nonzero[1][n]]
         if fiberId not in computedFiberStatistics:
             fiber = extractOneFiber(fibers, nonzero[0][n], nonzero[1][n])
-            # TODO(mariusl): fix this hack by removing small skeleton segments
-            if (fiber.shape[0] * fiber.shape[1] > 16):
-                computedFiberStatistics[fiberId] = getStatistics(fiber)
+            computedFiberStatistics[fiberId] = getStatistics(fiber)
 
     # Must match the statistics header length minus id
     average = numpy.array([0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0])
