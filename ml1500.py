@@ -2,7 +2,7 @@ import csv
 import numpy
 from random import choices, sample
 
-f = open("./../data/patients.csv")
+f = open("./../data/survival1500.txt")
 next(f)
 survival = [line.split(",") for line in f]
 output = {}
