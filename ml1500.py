@@ -1,6 +1,8 @@
 import csv
 import numpy
 from random import choices, sample
+from sklearn.preprocessing import normalize
+
 
 f = open("./../data/survival1500.txt")
 next(f)
@@ -11,7 +13,6 @@ for entry in survival:
 
 # TODO(mariusl): fix
 del output[29438] # For some reason nothing was computed for this
-
 
 f = open("./../data/statistics1500.txt", "r")
 next(f)
@@ -28,9 +29,8 @@ for key in output.keys():
     y.append(output[key])
 
 X = numpy.array(X)
+X = normalize(X, axis = 0)
 y = numpy.array(y)
-
-modifiedX = X[y == 1]
 
 sample = choices([True,False], weights=[0.75, 0.25], k = len(X))
 sample = numpy.array(sample)

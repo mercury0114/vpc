@@ -22,7 +22,6 @@ print("Loading model")
 model = load_model("./../data/model.h5")
 print("Model loaded")
 
-
 files = os.listdir("./../data/1500/")
 
 for file in files:

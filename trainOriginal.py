@@ -26,10 +26,7 @@ def addConvolutionalLayer(layer, newDepth = None):
 
 def buildModel():
     model = Sequential()
-    model.add(Conv2D(4, kernel_size=(3,3), input_shape=(1500,1500,1)))
-    model.add(MaxPooling2D(pool_size=(4,4)))
-    model.add(Dropout(0.2))
-    model.add(Conv2D(8, kernel_size=(3,3)))
+    model.add(Conv2D(8, kernel_size=(3,3), input_shape=(1500,1500,3)))
     model.add(MaxPooling2D(pool_size=(4,4)))
     model.add(Dropout(0.2))
     model.add(Conv2D(16, kernel_size=(3,3)))
@@ -37,8 +34,11 @@ def buildModel():
     model.add(Dropout(0.2))
     model.add(Conv2D(32, kernel_size=(3,3)))
     model.add(MaxPooling2D(pool_size=(4,4)))
+    model.add(Dropout(0.2))
+    model.add(Conv2D(64, kernel_size=(3,3)))
+    model.add(MaxPooling2D(pool_size=(4,4)))
     model.add(Flatten())
-    model.add(Dense(16, activation=tf.nn.relu))
+    model.add(Dense(64, activation=tf.nn.relu))
     model.add(Dropout(0.2))
     model.add(Dense(2, activation=tf.nn.softmax))
     model.compile(optimizer='adam', loss='sparse_categorical_crossentropy',
@@ -57,7 +57,7 @@ def GetTrainingTestData():
         values = line.split(",")
         id = values[1]
         v = int(values[3])
-        image = imread("./../data/masksBalanced/" + id)
+        image = imread("./../data/1500Balanced/" + id)
         array = numpy.array(image).astype(float) / 255
         if (v == 0):
             zeroY.append(v)
@@ -76,10 +76,8 @@ def GetTrainingTestData():
     oneXTrain, oneXTest, oneYTrain, oneYTest = train_test_split(oneX, oneY, test_size=0.3, random_state=0)
     
     X_train = numpy.concatenate((zeroXTrain, oneXTrain))
-    X_train = numpy.expand_dims(X_train, axis = 3)
     y_train = numpy.concatenate((zeroYTrain, oneYTrain))
     X_test = numpy.concatenate((zeroXTest, oneXTest))
-    X_test = numpy.expand_dims(X_test, axis = 3)
     y_test = numpy.concatenate((zeroYTest, oneYTest))
     return (X_train, X_test, y_train, y_test)
 

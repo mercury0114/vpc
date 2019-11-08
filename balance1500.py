@@ -17,9 +17,9 @@ fwrite = open("./../data/survivalBalanced.txt", mode="w")
 fwrite.write(next(fread))
 
 for line in fread:
-    print(id)
     split = line.split(",")
     id = split[1]
+    print(id)
     status = int(split[3])
     os.system("cp ./../data/masks1500/" + id + "/without_blops.tiff ./../data/masksBalanced/" + id)
     fwrite.write(line)
@@ -35,3 +35,4 @@ for line in fread:
         split[1] = id + "_270"
         fwrite.write(",".join(split))
         rotate(270, id)
+
