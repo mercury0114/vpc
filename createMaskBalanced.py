@@ -1,0 +1,74 @@
+from extractor import *
+from keras.models import load_model
+from skeletonizer import *
+from skimage.io import imread
+import os
+
+def computeRawCollagenMask(model, image, rawCollagenFile):
+    if (os.path.isfile(rawCollagenFile)):
+        print(rawCollagenFile + " already exists")
+        return
+    s = 256
+    rawCollagen = memmap(rawCollagenFile, shape=(image.shape[0], image.shape[1]), dtype='uint8')
+    for x in range(0, image.shape[0] - (s-1), s/2):
+        for y in range(0, image.shape[1] - (s-1), s/2):
+            patch = image[x:x+s, y:y+s]
+            current = numpy.array(rawCollagen[x:x+s, y:y+s])
+            rawCollagen[x:x+s, y:y+s] = current | extractCollagen(patch, model)
+    del rawCollagen
+
+def mean_iou(y_true, y_pred):
+    prec = []
+    for t in np.arange(0.5, 1.0, 0.05):
+        y_pred_ = tf.to_int32(y_pred > t)
+        score, up_opt = tf.metrics.mean_iou(y_true, y_pred_, 2)
+        K.get_session().run(tf.local_variables_initializer())
+        with tf.control_dependencies([up_opt]):
+            score = tf.identity(score)
+        prec.append(score)
+    return K.mean(K.stack(prec), axis=0)
+
+print("Loading model")
+model = load_model("./../data/model.h5", custom_objects={'mean_iou' : mean_iou})
+print("Model loaded")
+
+files = os.listdir("./../data/1500Balanced/")
+for file in files:
+    print("Computing for " + file)
+    outdir = "".join(["./../data/fibersBalanced/", str(file), '/'])
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
+    
+    print("Extracting collagen")
+    image = imread("./../data/1500Balanced/" + file)
+    rawCollagenFile = outdir + "raw.tiff"
+    computeRawCollagenMask(model, image, rawCollagenFile)
+
+    print("Removing small blops")
+    collagenWithoutBlopsFile = outdir + "without_blops.tiff"
+    removeSmallCollagenBlops(rawCollagenFile, collagenWithoutBlopsFile, 100)
+
+    print("Filling holes in collagen")
+    collagenHolesFilledFile = outdir + "holes_filled.tiff"
+    fillHoles(collagenWithoutBlopsFile, collagenHolesFilledFile)
+
+    print("Computing skeleton")
+    skeletonFile = outdir + "skeleton.tiff"
+    computeSkeleton(collagenHolesFilledFile, skeletonFile)
+
+    print("Partitioning skeleton")
+    partitionFile = outdir + "partition.tiff"
+    partitionSkeleton(skeletonFile, partitionFile)
+
+    print("Removing short skeleton segments")
+    shortSkeletonRemovedFile = outdir + "short_removed.tiff"
+    removeSmallCollagenBlops(partitionFile, shortSkeletonRemovedFile, 5)
+
+    print("Labelling partitioned skeleton")
+    labelledFile = outdir + "labels.tiff"
+    numberOfParts = labelSkeletonParts(shortSkeletonRemovedFile, labelledFile)
+    print("Labelled into " + str(numberOfParts) + " parts.")
+
+    print("Splitting collagen into fibers")
+    fibersFile = outdir + "fibers.tiff"
+    makeFibersFromSkeleton(collagenHolesFilledFile, labelledFile, fibersFile)

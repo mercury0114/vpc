@@ -30,13 +30,13 @@ def flushToFile(statistics, f):
     f.flush()
 
 header = "id,length,width,areaRatio,h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,h13\n"
-statisticsFile = open("./../data/statistics1500.txt", "w")
+statisticsFile = open("./../data/statisticsBalanced.txt", "w")
 statisticsFile.write(header)
 
-grids = os.listdir("./../data/masks1500/")
+grids = os.listdir("./../data/fibersBalanced/")
 for gID in grids:
     start = time.time()
-    fibers = memmap("./../data/masks1500/" + str(gID) + "/fibers.tiff")
+    fibers = memmap("./../data/fibersBalanced/" + str(gID) + "/fibers.tiff")
     nonzero = numpy.nonzero(fibers)
 
     computedFiberStatistics = {}
@@ -53,7 +53,7 @@ for gID in grids:
     if (len(computedFiberStatistics) > 0):
         average /= len(computedFiberStatistics)
     
-    flushToFile([int(gID)] + list(average), statisticsFile)
+    flushToFile([gID] + list(average), statisticsFile)
     print(time.time() - start)
     print('DONE with ', gID)
 

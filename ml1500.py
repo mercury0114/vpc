@@ -1,26 +1,26 @@
 import csv
 import numpy
-from random import choices, sample
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import normalize
+from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.models import Sequential
+from keras.layers import Dense
 
-
-f = open("./../data/survival1500.txt")
+f = open("./../data/survivalBalanced.txt")
 next(f)
 survival = [line.split(",") for line in f]
 output = {}
 for entry in survival:
-    output[int(entry[1])] = int(entry[3])
+    output[entry[1]] = int(entry[3])
 
-# TODO(mariusl): fix
-del output[29438] # For some reason nothing was computed for this
 
-f = open("./../data/statistics1500.txt", "r")
+f = open("./../data/statisticsBalanced.txt", "r")
 next(f)
-data = [[float(x) for x in line.split(",")] for line in f]
+data = [line.split(",") for line in f]
 dictionary = {}
 for row in data:
-    if (int(row[0]) in output):
-        dictionary[int(row[0])] = row[1:]
+    if (row[0] in output):
+        dictionary[row[0]] = row[1:]
 
 X = []
 y = []
@@ -32,38 +32,31 @@ X = numpy.array(X)
 X = normalize(X, axis = 0)
 y = numpy.array(y)
 
-sample = choices([True,False], weights=[0.75, 0.25], k = len(X))
-sample = numpy.array(sample)
+trainX, testX, trainY, testY = train_test_split(X, y, test_size=0.3)
 
-trainX = X[sample]
-trainy = y[sample]
-
-testX = X[sample == False]
-testy = y[sample == False]
-
-"""
-from sklearn.neighbors import KNeighborsClassifier
-
-kn = KNeighborsClassifier(n_neighbors = 1)
-kn.fit(trainX, trainy)
-"""
+print(trainX.shape)
+print(testX.shape)
 
 import keras
 import tensorflow as tf
 from keras.layers import *
 from keras.models import Model
 
-s = Input((16,))
-d1 = Dense(16, activation = 'relu') (s)
-d2 = Dense(16, activation = 'relu') (d1)
-o = Dense(1, activation = 'sigmoid') (d2)
-model = Model(inputs = [s], outputs = [o])
+model = Sequential()
+model.add(Dense(128, activation='relu'))
+model.add(Dense(64, activation='relu'))
+model.add(Dense(2, activation='softmax'))
 
 model.compile(optimizer='adam',
-              loss = 'binary_crossentropy',
+              loss = 'sparse_categorical_crossentropy',
               metrics=['accuracy'])
 
-model.fit(trainX, trainy, epochs=50, batch_size=1)
+print("Training model")
+earlyStopper = EarlyStopping(monitor='val_loss', patience=50, verbose=1)
+model.fit(trainX, trainY, validation_split = 0.3,
+      epochs = 1000, callbacks=[earlyStopper])
 
-predictions = model.predict(testX)
-
+print("Evaluation:")
+print("Train 0 vs 1 ratio: " + str(float((trainY == 0).sum()) / len(trainY)))
+print("Test 0 vs 1 ratio: " + str(float((testY == 0).sum()) / len(testY)))
+print(model.evaluate(testX, testY))
