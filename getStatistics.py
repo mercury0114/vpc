@@ -126,7 +126,7 @@ print("Statistics calculated")
 
 
 def merge(aggregatedName, mergeName):
-    mergedHeader ="rank,gID,length,width,areaRatio,h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,h13\n"
+    mergedHeader ="gID,rank,length,width,areaRatio,h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,h13\n"
     merged = open(mergeName, "w")
     merged.write(mergedHeader)
     for gID in grids:

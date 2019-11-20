@@ -1,16 +1,14 @@
 from tifffile import memmap
 import numpy
 import os
+from PIL import Image
 
 def rotate(degrees, id):
-    mask = memmap("./../data/masksBalanced/" + id)
-    rot = memmap("./../data/masksBalanced/" + id + "_" + str(degrees), dtype='uint8', shape=mask.shape)
-    rot[:,:] = mask
-    while (degrees > 0):
-        rot[:,:] = numpy.rot90(rot)
-        degrees -= 90
-    del(mask)
-    del(rot)
+    image = Image.open("./../data/1500/" + id + ".png")
+    rot = image.rotate(degrees)
+    name = "./../data/1500Balanced/" + id + "_" + str(degrees)
+    rot.save(name + ".png")
+    os.system("mv " + name + ".png " + name)
 
 fread = open("./../data/survival1500.txt")
 fwrite = open("./../data/survivalBalanced.txt", mode="w")
@@ -21,7 +19,7 @@ for line in fread:
     id = split[1]
     print(id)
     status = int(split[3])
-    os.system("cp ./../data/masks1500/" + id + "/without_blops.tiff ./../data/masksBalanced/" + id)
+    os.system("cp ./../data/1500/" + id + ".png ./../data/1500Balanced/" + id)
     fwrite.write(line)
     if (status == 1):
         split[1] = id + "_90"

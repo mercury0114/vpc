@@ -13,6 +13,7 @@ from fiber import width
 from fiber import areaRatio
 from tifffile import memmap
 import time
+import sys
 
 def getStatistics(collagen):
     statistics = []
@@ -21,7 +22,10 @@ def getStatistics(collagen):
     statistics.append(areaRatio(collagen))
     copy = numpy.copy(collagen)
     copy[copy > 0] = 1
-    statistics.extend([e for e in mahotas.features.haralick(copy).mean(0)])
+    if (copy.shape[0] == 1 or copy.shape[1] == 1):
+        statistics.extend([0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0])
+    else:
+        statistics.extend([e for e in mahotas.features.haralick(copy).mean(0)])
     return numpy.array(statistics)
 
 def flushToFile(statistics, f):
@@ -30,13 +34,15 @@ def flushToFile(statistics, f):
     f.flush()
 
 header = "id,length,width,areaRatio,h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,h13\n"
-statisticsFile = open("./../data/statistics1500.txt", "w")
+statisticsFile = open(sys.argv[1], "w")
 statisticsFile.write(header)
 
-grids = os.listdir("./../data/masks1500/")
+grids = os.listdir(sys.argv[2])
+count = 0
 for gID in grids:
+    print("Dealing with " + str(gID))
     start = time.time()
-    fibers = memmap("./../data/masks1500/" + str(gID) + "/fibers.tiff")
+    fibers = memmap(sys.argv[2] + str(gID) + "/fibers.tiff")
     nonzero = numpy.nonzero(fibers)
 
     computedFiberStatistics = {}
@@ -53,9 +59,10 @@ for gID in grids:
     if (len(computedFiberStatistics) > 0):
         average /= len(computedFiberStatistics)
     
-    flushToFile([int(gID)] + list(average), statisticsFile)
+    flushToFile([gID] + list(average), statisticsFile)
     print(time.time() - start)
-    print('DONE with ', gID)
+    count += 1
+    print("DONE nr " + str(count) + " with " + str(gID))
 
 statisticsFile.close()
 print("Statistics calculated")

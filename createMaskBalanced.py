@@ -1,8 +1,12 @@
 from extractor import *
+from keras import backend as K
 from keras.models import load_model
 from skeletonizer import *
 from skimage.io import imread
+import tensorflow as tf
 import os
+import numpy
+import sys
 
 def computeRawCollagenMask(model, image, rawCollagenFile):
     if (os.path.isfile(rawCollagenFile)):
@@ -19,7 +23,7 @@ def computeRawCollagenMask(model, image, rawCollagenFile):
 
 def mean_iou(y_true, y_pred):
     prec = []
-    for t in np.arange(0.5, 1.0, 0.05):
+    for t in numpy.arange(0.5, 1.0, 0.05):
         y_pred_ = tf.to_int32(y_pred > t)
         score, up_opt = tf.metrics.mean_iou(y_true, y_pred_, 2)
         K.get_session().run(tf.local_variables_initializer())
@@ -29,13 +33,16 @@ def mean_iou(y_true, y_pred):
     return K.mean(K.stack(prec), axis=0)
 
 print("Loading model")
-model = load_model("./../data/model.h5", custom_objects={'mean_iou' : mean_iou})
+model = load_model(sys.argv[1], custom_objects={'mean_iou' : mean_iou})
 print("Model loaded")
 
+os.makedirs(sys.argv[2])
 files = os.listdir("./../data/1500Balanced/")
+count = 0
 for file in files:
-    print("Computing for " + file)
-    outdir = "".join(["./../data/fibersBalanced/", str(file), '/'])
+    count += 1
+    print("Computation nr " + str(count) + " for " + file)
+    outdir = "".join([sys.argv[2], str(file), '/'])
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     
@@ -48,13 +55,9 @@ for file in files:
     collagenWithoutBlopsFile = outdir + "without_blops.tiff"
     removeSmallCollagenBlops(rawCollagenFile, collagenWithoutBlopsFile, 100)
 
-    print("Filling holes in collagen")
-    collagenHolesFilledFile = outdir + "holes_filled.tiff"
-    fillHoles(collagenWithoutBlopsFile, collagenHolesFilledFile)
-
     print("Computing skeleton")
     skeletonFile = outdir + "skeleton.tiff"
-    computeSkeleton(collagenHolesFilledFile, skeletonFile)
+    computeSkeleton(collagenWithoutBlopsFile, skeletonFile)
 
     print("Partitioning skeleton")
     partitionFile = outdir + "partition.tiff"
@@ -71,4 +74,4 @@ for file in files:
 
     print("Splitting collagen into fibers")
     fibersFile = outdir + "fibers.tiff"
-    makeFibersFromSkeleton(collagenHolesFilledFile, labelledFile, fibersFile)
+    makeFibersFromSkeleton(collagenWithoutBlopsFile, labelledFile, fibersFile)
