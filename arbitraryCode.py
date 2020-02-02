@@ -4,6 +4,15 @@ from skeletonizer import *
 from skimage.io import imread
 import os
 
+from fiber import length
+import numpy
+
+a = numpy.array([[1,1,1],[0,0,0]])
+print(length(a))
+b = numpy.array([[1,0,1],[0,1,0],[1,0,1]])
+print(length(b))
+
+"""
 def computeRawCollagenMask(model, image, rawCollagenFile):
     if (os.path.isfile(rawCollagenFile)):
         print(rawCollagenFile + " already exists")
@@ -60,3 +69,4 @@ for file in files:
     print("Splitting collagen into fibers")
     fibersFile = outdir + "fibers.tiff"
     makeFibersFromSkeleton(collagenHolesFilledFile, labelledFile, fibersFile)
+"""

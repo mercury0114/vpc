@@ -119,7 +119,7 @@ def findNeighbours(skeleton, x, y):
     for x0, y0 in itertools.product((-1, 0, 1), (-1, 0, 1)):
         if (x + x0 >= 0 and x + x0 < skeleton.shape[0] and
             y + y0 >= 0 and y + y0 < skeleton.shape[1] and skeleton[x + x0, y + y0]):
-            if (x != 0 or y != 0):
+            if (x0 != 0 or y0 != 0):
                 neighbours.append((x + x0, y + y0))
     return neighbours
 

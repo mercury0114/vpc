@@ -26,19 +26,17 @@ def addConvolutionalLayer(layer, newDepth = None):
 
 def buildModel():
     model = Sequential()
-    model.add(Conv2D(4, kernel_size=(3,3), input_shape=(1500,1500,1)))
-    model.add(MaxPooling2D(pool_size=(4,4)))
-    model.add(Dropout(0.2))
-    model.add(Conv2D(8, kernel_size=(3,3)))
-    model.add(MaxPooling2D(pool_size=(4,4)))
-    model.add(Dropout(0.2))
-    model.add(Conv2D(16, kernel_size=(3,3)))
+    model.add(Conv2D(16, kernel_size=(3,3), input_shape=(1500,1500,1)))
     model.add(MaxPooling2D(pool_size=(4,4)))
     model.add(Dropout(0.2))
     model.add(Conv2D(32, kernel_size=(3,3)))
     model.add(MaxPooling2D(pool_size=(4,4)))
+    model.add(Dropout(0.2))
+    model.add(Conv2D(64, kernel_size=(3,3)))
+    model.add(MaxPooling2D(pool_size=(4,4)))
+    model.add(Dropout(0.2))
     model.add(Flatten())
-    model.add(Dense(16, activation=tf.nn.relu))
+    model.add(Dense(128, activation=tf.nn.relu))
     model.add(Dropout(0.2))
     model.add(Dense(2, activation=tf.nn.softmax))
     model.compile(optimizer='adam', loss='sparse_categorical_crossentropy',
@@ -57,7 +55,7 @@ def GetTrainingTestData():
         values = line.split(",")
         id = values[1]
         v = int(values[3])
-        image = imread("./../data/masksBalanced/" + id)
+        image = imread("./../data/masksBalancedMariaus/" + id)
         array = numpy.array(image).astype(float) / 255
         if (v == 0):
             zeroY.append(v)
@@ -91,10 +89,10 @@ model = buildModel()
 print(model.summary())
 
 print("Training model")
-earlyStopper = EarlyStopping(monitor='val_loss', patience=10, verbose=1)
+earlyStopper = EarlyStopping(monitor='val_loss', patience=25, verbose=1)
 checkPointer = ModelCheckpoint('./../data/tempPrediction.h5', verbose=1, save_best_only=True)
 model.fit(X_train, y_train, batch_size = 8, shuffle=True, validation_split = 0.3,
-	  epochs = 100, callbacks=[earlyStopper, checkPointer])
+	  epochs = 1000, callbacks=[earlyStopper, checkPointer])
 model.save('./../data/prediction.h5')
 
 print("Evaluation:")
