@@ -36,7 +36,7 @@ print("Loading model")
 model = load_model(sys.argv[1], custom_objects={'mean_iou' : mean_iou})
 print("Model loaded")
 
-os.makedirs(sys.argv[2])
+assert(os.path.isdir(sys.argv[2]))
 files = os.listdir("./../data/1500/")
 count = 0
 for file in files:

@@ -51,10 +51,15 @@ def length(fiber):
         if (len(neighbours) > 0):
             length /= (float(len(neighbours)))
         totalLength += length
-    return totalLength
+    return int(totalLength)
 
 def width(fiber):
-    return (fiber > 0).sum() // length(fiber)
+    l = length(fiber)
+    area = (fiber > 0).sum()
+    if l > 0:
+        return area // l
+    else:
+        return area
 
 def areaRatio(fiber):
     return float((fiber > 0).sum()) / (fiber.shape[0] * fiber.shape[1])
