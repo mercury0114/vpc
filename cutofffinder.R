@@ -685,12 +685,11 @@ plot.kaplanmeier <- function(marker, time, event, cutoff=NULL, surv.test="sctest
     if (!is.null(jpg.file)) dev.off()
   }
   else out.file <- NULL
-  print(names(biomarker)[1])
   print(paste("cutoff=",cutoff))
   print(paste("HAZRD RATIO = ",round(HR, 2),"(",round(HR.lower, 2),"-",round(HR.upper, 2)))
   print(paste("p value = ", signif(p, 2)))
-  PVAL <<- c(PVAL, signif(p, 2))
-  CTF <<- c(CTF, cutoff)
+  PVAL <<- p
+  CTF <<- cutoff
   return(out.file)
 }
 

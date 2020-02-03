@@ -2,26 +2,40 @@ library(survival)
 library(survminer)
 library(dplyr)
 
-data <- read.csv("./../data/survival/survivalCRC.csv")
-data <- data[order(data$gID),]
-statistics <- read.csv("./../data/survival/fiber.txt")
-statistics <- statistics[statistics$gID %in% data$gID,]
-statistics <- statistics[order(statistics$gID),]
-
-statistics <- statistics[statistics$rank %in% c(-4,-3,-2),]
-statistics <- aggregate(statistics, by=list(statistics$gID), FUN=mean)
-
-print(dim(data))
-print(dim(statistics))
+set.seed(0)
 
 source(file = "cutofffinder.R")
 
-for (i in seq(3, dim(statistics)[2])) {
-	print(i)
-	biomarker = statistics[,i]
-	names(biomarker) = colnames(statistics)[i]
-	get.cutoff(type=c("survival_significance"), 
-                filename="./../data/survival/plotsCRCFiberRankMinus4Minus2/plot",
-		biomarker=biomarker, time=data$PFS_mnth, event=data$P_fact,
+data <- read.csv("./../data/survival/survival1500.csv")
+data <- data[order(data$id),]
+statistics <- read.csv("./../data/survival/1500/statisticsMariausOld.txt")
+statistics <- statistics[statistics$id %in% data$id,]
+statistics <- statistics[order(statistics$id),]
+
+#statistics <- statistics[statistics$rank %in% c(-1),]
+#statistics <- aggregate(statistics, by=list(statistics$gID), FUN=mean)
+
+idx<-sample(c(T, F), nrow(statistics), prob=c(0.9, 0.1), replace=T)
+
+trainStatistics = statistics[idx,]
+testStatistics = statistics[!idx,]
+trainData = data[idx,]
+testData = data[!idx,]
+
+biomarkerName = "length"
+
+biomarker = trainStatistics[,biomarkerName]
+names(biomarker) = biomarkerName
+get.cutoff(type=c("survival_significance"), 
+           filename="./../data/survival/1500/MariausOldSplit/plot",
+		biomarker=biomarker, time=trainData$ost_m, event=trainData$status01,
 		plots=c("kaplanmeier"))
-}
+
+print(PVAL)
+
+group = sapply(testStatistics[,biomarkerName], (function(x) x > CTF))
+group = as.data.frame(group)
+colnames(group) = "partition"
+
+surv_object = Surv(time=testData$ost_m, event=!testData$status01)
+fit = survfit(surv_object ~ partition, data=group)
