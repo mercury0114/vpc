@@ -422,8 +422,8 @@ plot.histogram <- function(marker, cutoff=NULL, gauss=TRUE, npoints=1000, nbreak
     percent.low <- round(n.low/n * 100, 1)
     symbol <- unlist(strsplit(marker.name, " "))[1]
     main <- paste(main, ", ", n.high, " (", percent.high, "%) ", symbol, "+, ", n.low, " (", percent.low, "%) ", symbol, "-", sep="")
-    NH<<-c(NH,n.high)
-    NL<<-c(NL,n.low)
+    NH<<-n.high
+    NL<<-n.low
   }
   else main <- ""
   out.file <- jpg.file
@@ -671,9 +671,9 @@ plot.kaplanmeier <- function(marker, time, event, cutoff=NULL, surv.test="sctest
     z <- qnorm(q)
     HR.lower <- exp(coef[1] - z * coef[3])
     HR.upper <- exp(coef[1] + z * coef[3])
-    HzR<<-c(HzR,round(HR, 2))
-    HzL<<-c(HzL,round(HR.lower, 2))
-    HzU<<-c(HzU,round(HR.upper, 2))
+    HzR<<-HR
+    HzL<<-HR.lower
+    HzU<<-HR.upper
     p <- model[[surv.test]]["pvalue"]
     out.file <- paste(jpg.file, "_cutoff", signif(cutoff, 4), sep="")
     out.file <- paste(out.file, "kaplanmeier.jpg", sep="_")

@@ -26,6 +26,12 @@ biomarkerName = "length"
 
 biomarker = trainStatistics[,biomarkerName]
 names(biomarker) = biomarkerName
+
+print(dim(biomarker))
+print(dim(trainData))
+print(biomarker)
+print(trainData)
+
 get.cutoff(type=c("survival_significance"), 
            filename="./../data/survival/1500/MariausOldSplit/plot",
 		biomarker=biomarker, time=trainData$ost_m, event=trainData$status01,
