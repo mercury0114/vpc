@@ -8,7 +8,7 @@ getStatistics = function(biomarker, data) {
     get.cutoff(type=c("survival_significance"),
                 filename="./../data/survival/1500/MariausOld/plot",
         biomarker=biomarker, time=data$ost_m, event=data$status01, plots=c("kaplanmeier"))
-    l = list(PVAL, HzR, CTF)
+    l = list(as.numeric(PVAL), HzR, CTF)
     names(l) = c("p", "hazard", "cutoff")
     return(l)
 }
@@ -19,8 +19,7 @@ features <- read.csv("./../data/survival/1500/statisticsMariausOld.txt")
 features <- features[features$id %in% data$id,]
 features <- features[order(features$id),]
 
-
-table = matrix(, nrow=dim(features)[2], 3)
+table = matrix(, nrow=dim(features)[2], ncol=3)
 rownames(table) = colnames(features)
 colnames(table) = c("hzr_mean", "hzr_sd", "n_obs")
 for (feature in colnames(features)[-1]) {
@@ -34,14 +33,12 @@ for (feature in colnames(features)[-1]) {
         pValues[row] = statistics$p
         cutoffs[row] = statistics$cutoff
         hazards[row] = statistics$hazard
-        print(row)
-        print(feature)
-        print(statistics)
     }
-
-    table[feature]["hzr_mean"] = mean(hazards)
-    table[feature]["hzr_sd"] = sd(hazards)
-    table[feature]["n_obs"] = sum(pValues < 0.05)
+    table[feature, "hzr_mean"] = mean(hazards)
+    table[feature, "hzr_sd"] = sd(hazards)
+    table[feature, "n_obs"] = sum(pValues < 0.05)
+    print(table)
+    Sys.sleep(5)
 }
 
 write.csv(table, file="./../data/survival/1500/table.csv")
