@@ -6,16 +6,16 @@ library(dplyr)
 getStatistics = function(biomarker, data) {
     source(file = "cutofffinder.R")
     get.cutoff(type=c("survival_significance"),
-                filename="./../data/survival/1500/MariausOld/plot",
+                filename="./../data/plots/1500/plot",
         biomarker=biomarker, time=data$ost_m, event=data$status01, plots=c("kaplanmeier"))
     l = list(as.numeric(PVAL), HzR, CTF)
     names(l) = c("p", "hazard", "cutoff")
     return(l)
 }
 
-data <- read.csv("./../data/survival/survival1500.csv")
+data <- read.csv("./../data/survival/survival1500.txt")
 data <- data[order(data$id),]
-features <- read.csv("./../data/survival/1500/statisticsMariausOld.txt")
+features <- read.csv("./../data/statistics/statistics1500.txt")
 features <- features[features$id %in% data$id,]
 features <- features[order(features$id),]
 
